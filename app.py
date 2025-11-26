@@ -3,14 +3,12 @@ import psycopg2
 from psycopg2.pool import SimpleConnectionPool
 from datetime import datetime
 
-# ---------------------------
-#       CONEXÃO OTIMIZADA
-# ---------------------------
+# 1. POOL DE CONEXÃO COM CACHE
 @st.cache_resource
-def get_pool():
+def get_connection_pool():
     return SimpleConnectionPool(
         minconn=1,
-        maxconn=5,
+        maxconn=4,  # reduzido para aliviar Supabase
         host="aws-1-us-east-2.pooler.supabase.com",
         database="postgres",
         user="postgres.xcogxppribxdhehmcdlb",
@@ -20,42 +18,39 @@ def get_pool():
     )
 
 def run_query(query, params=None, fetch=True):
-    pool = get_pool()
+    pool = get_connection_pool()
     conn = pool.getconn()
     try:
         with conn.cursor() as cur:
             cur.execute(query, params or ())
-            data = cur.fetchall() if fetch else None
+            if fetch:
+                result = cur.fetchall()
+            else:
+                result = None
             conn.commit()
     finally:
         pool.putconn(conn)
-    return data
+    return result
 
-# ---------------------------
-#        INTERFACE
-# ---------------------------
-st.set_page_config(page_title="Registro de Estatísticas", layout="centered")
-st.title("📊 Estatísticas da Pelada")
+# 2. UI
+st.set_page_config(page_title="📊 Estatísticas da Pelada")
+st.title("📊 Registro de Estatísticas da Pelada")
 
-# ---------------------------
-#     CARREGAMENTO INICIAL
-# ---------------------------
+# 3. CACHES DE DADOS ESTÁTICOS
 @st.cache_data
-def carregar_dados_dropdown():
+def carregar_dados():
     partidas = run_query("SELECT id, data_partida FROM partidas ORDER BY data_partida DESC")
     jogadores = run_query("SELECT id, nome, posicao FROM jogadores ORDER BY nome")
     times = run_query("SELECT id, time FROM times ORDER BY time")
     return partidas, jogadores, times
 
-partidas, jogadores, times = carregar_dados_dropdown()
+partidas, jogadores, times = carregar_dados()
 
-# ---------------------------
-#         FORMULÁRIO
-# ---------------------------
+# 4. FORMULÁRIO
 with st.form("form_estatisticas"):
 
     partida_escolhida = st.selectbox(
-        "Selecione a partida:",
+        "Selecione a data da pelada:",
         partidas,
         format_func=lambda x: x[1].strftime("%d/%m/%Y")
     )
@@ -74,33 +69,32 @@ with st.form("form_estatisticas"):
 
     gols_marcados = st.number_input("Gols marcados:", min_value=0)
 
-    # Mostrar campo de gols sofridos somente se posição for 'goleiro'
-    is_goleiro = jogador_escolhido[2].lower() == "goleiro"
-    gols_sofridos = st.number_input("Gols sofridos:", min_value=0) if is_goleiro else 0
+    is_goleiro = jogador_escolhido[2].strip().lower() == "goleiro"
+    if is_goleiro:
+        gols_sofridos = st.number_input("Gols sofridos:", min_value=0)
+    else:
+        gols_sofridos = 0  # não preenche nada no campo se não for goleiro
 
-    submitted = st.form_submit_button("Registrar Estatística")
+    submitted = st.form_submit_button("✅ Registrar Estatística")
 
-# ---------------------------
-#        PROCESSAMENTO
-# ---------------------------
+# 5. PROCESSAMENTO
 if submitted:
-    # Verificar se já existe registro
+    partida_id = partida_escolhida[0]
+    jogador_id = jogador_escolhido[0]
+    time_id = time_escolhido[0]
+
+    # Checa duplicidade
     existe = run_query(
         "SELECT 1 FROM estatisticas WHERE partida_id = %s AND jogador_id = %s",
-        (partida_escolhida[0], jogador_escolhido[0])
+        (partida_id, jogador_id)
     )
 
     if existe:
-        st.error("❌ Já existe uma estatística para esse jogador nesta partida!")
+        st.warning("⚠️ Já existe estatística registrada para esse jogador nesta pelada.")
     else:
         run_query("""
             INSERT INTO estatisticas (partida_id, jogador_id, time_id, gols_marcados, gols_sofridos)
             VALUES (%s, %s, %s, %s, %s)
-        """, (
-            partida_escolhida[0],
-            jogador_escolhido[0],
-            time_escolhido[0],
-            gols_marcados,
-            gols_sofridos
-        ), fetch=False)
+        """, (partida_id, jogador_id, time_id, gols_marcados, gols_sofridos), fetch=False)
+
         st.success("✅ Estatística registrada com sucesso!")
