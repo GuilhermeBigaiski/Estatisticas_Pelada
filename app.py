@@ -50,12 +50,14 @@ with st.form("form_estatisticas"):
                 "gols_sofridos": gols_sofridos
             }).execute()
 
-            if response.status_code == 201:
-                st.success("✅ Estatísticas registradas com sucesso!")
-            else:
-                st.error("❌ Erro ao registrar estatísticas.")
-                st.json(response)
+            if response.data:
+    st.success("✅ Estatísticas registradas com sucesso!")
+else:
+    st.error("❌ Erro ao registrar estatísticas.")
+    st.write("Detalhes do erro:")
+    st.json(response.error)
 
         except Exception as e:
             st.error("❌ Erro na inserção:")
             st.exception(e)
+
