@@ -1,50 +1,51 @@
 import streamlit as st
-from datetime import date
-import requests
-import os
+from supabase import create_client
+from datetime import datetime
 
-# URL da Supabase (substitua pela sua)
-SUPABASE_URL = st.secrets["SUPABASE_URL"]
-SUPABASE_API_KEY = st.secrets["SUPABASE_API_KEY"]
+# Conexão com Supabase
+SUPABASE_URL = "https://SEU_PROJECT_ID.supabase.co"
+SUPABASE_API_KEY = "SUA_API_KEY"
+supabase = create_client(SUPABASE_URL, SUPABASE_API_KEY)
 
-def inserir_dados(data, nome, time, gols, sofreu_gols):
-    headers = {
-        "apikey": SUPABASE_API_KEY,
-        "Authorization": f"Bearer {SUPABASE_API_KEY}",
-        "Content-Type": "application/json"
-    }
+st.title("Pelada")
 
-    payload = {
-        "data": data.isoformat(),
-        "jogador": nome,
-        "time": time,
-        "gols": gols,
-        "gols_sofridos": sofreu_gols if sofreu_gols else None
-    }
+# 1. Buscar dados para os dropdowns
+datas_response = supabase.table("partidas").select("data_partida").execute()
+jogadores_response = supabase.table("jogadores").select("nome").execute()
+times_response = supabase.table("times").select("time").execute()
 
-    response = requests.post(f"{SUPABASE_URL}/rest/v1/estatisticas", json=payload, headers=headers)
-    return response.status_code == 201
+datas = sorted(set([d["data_partida"] for d in datas_response.data]))
+jogadores = [j["nome"] for j in jogadores_response.data]
+times = [t["time"] for t in times_response.data]
 
-st.set_page_config(page_title="Registro de Estatísticas", page_icon="⚽", layout="centered")
-
-st.title("📊 Formulário - Estatísticas da Pelada")
-
-with st.form("formulario_estatisticas"):
-    data = st.date_input("Data da pelada", value=date.today())
-    nome = st.text_input("Nome do jogador")
-    time = st.selectbox("Time", ["Time 1", "Time 2"])
-    gols = st.number_input("Gols marcados", min_value=0, step=1)
-
-    eh_goleiro = st.checkbox("É goleiro?")
-    sofreu_gols = None
-    if eh_goleiro:
-        sofreu_gols = st.number_input("Gols sofridos", min_value=0, step=1)
+# Formulário
+with st.form("registro_pelada"):
+    data_pelada = st.selectbox("Data da pelada", datas)
+    nome_jogador = st.selectbox("Nome do jogador", jogadores)
+    time = st.selectbox("Time", times)
+    
+    tipo_jogador = st.selectbox("Tipo de jogador", ["Jogador de linha", "Goleiro"])
+    
+    if tipo_jogador == "Jogador de linha":
+        gols = st.number_input("Gols marcados", min_value=0, step=1)
+        gols_sofridos = None
+    else:
+        gols_sofridos = st.number_input("Gols sofridos", min_value=0, step=1)
+        gols = None
 
     submit = st.form_submit_button("Enviar")
 
     if submit:
-        sucesso = inserir_dados(data, nome, time, gols, sofreu_gols)
-        if sucesso:
-            st.success("✅ Dados enviados com sucesso!")
-        else:
-            st.error("❌ Erro ao enviar os dados. Verifique os campos e tente novamente.")
+        registro = {
+            "data": data_pelada,
+            "nome": nome_jogador,
+            "time": time,
+            "gols": gols,
+            "gols_sofridos": gols_sofridos,
+            "tipo_jogador": tipo_jogador
+        }
+
+        # Insere na tabela do Supabase (ajuste o nome da tabela)
+        supabase.table("estatisticas").insert(registro).execute()
+
+        st.success("Registro enviado com sucesso!")
