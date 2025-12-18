@@ -1,11 +1,11 @@
 import streamlit as st
-from supabase import create_client
+from supabase import create_client, Client
 from datetime import datetime
 
 # Conexão com Supabase
 SUPABASE_URL = "https://SEU_PROJECT_ID.supabase.co"
 SUPABASE_API_KEY = "SUA_API_KEY"
-supabase = create_client(SUPABASE_URL, SUPABASE_API_KEY)
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_API_KEY)
 
 st.title("Pelada")
 
@@ -49,3 +49,4 @@ with st.form("registro_pelada"):
         supabase.table("estatisticas").insert(registro).execute()
 
         st.success("Registro enviado com sucesso!")
+
