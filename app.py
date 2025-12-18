@@ -31,9 +31,9 @@ with st.form("form_estatisticas"):
 
     if submitted:
         response = supabase.table("estatisticas").insert({
-            "jogador": jogador,
-            "time": time,
-            "data": data_partida,
+            "jogador": jogador_id,
+            "time": time_id,
+            "data": partida_id,
             "gols_marcados": gols_marcados,
             "gols_sofridos": gols_sofridos
         }).execute()
@@ -43,3 +43,4 @@ with st.form("form_estatisticas"):
         else:
             st.error("❌ Erro ao registrar estatísticas.")
             st.json(response)
+
