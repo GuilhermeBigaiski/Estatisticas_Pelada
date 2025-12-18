@@ -1,54 +1,45 @@
 import streamlit as st
-from supabase import create_client, Client
+from supabase import create_client
+from datetime import datetime
 
-# Conexão segura com Supabase via Secrets
-SUPABASE_URL = st.secrets["SUPABASE_URL"]
-SUPABASE_API_KEY = st.secrets["SUPABASE_API_KEY"]
+# Conexão com Supabase
+url = st.secrets["SUPABASE_URL"]
+key = st.secrets["SUPABASE_API_KEY"]
+supabase = create_client(url, key)
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_API_KEY)
+st.title("📋 Registro de Estatísticas da Pelada")
 
-st.title("Pelada")
+# Carrega os dados dos dropdowns
+jogadores_data = supabase.table("jogadores").select("nome").execute().data
+times_data = supabase.table("times").select("time").execute().data
+partidas_data = supabase.table("partidas").select("data_partida").order("data_partida", desc=True).execute().data
 
-# Buscar dados
-datas = supabase.table("partidas").select("id, data_partida").execute().data
-jogadores = supabase.table("jogadores").select("id, nome").execute().data
-times = supabase.table("times").select("id, time").execute().data
+# Converte os dados em listas para os dropdowns
+jogadores = [j["nome"] for j in jogadores_data]
+times = [t["time"] for t in times_data]
+datas = [p["data_partida"][:10] for p in partidas_data]  # Pega só a parte da data
 
-# Dropdowns
-partida = st.selectbox(
-    "Data da pelada",
-    datas,
-    format_func=lambda x: x["data_partida"]
-)
+# Formulário
+with st.form("form_estatisticas"):
+    jogador = st.selectbox("👤 Jogador", jogadores)
+    time = st.selectbox("🏳️ Time", times)
+    data_partida = st.selectbox("📅 Data da Partida", datas)
+    gols_marcados = st.number_input("⚽ Gols Marcados", min_value=0, step=1)
+    gols_sofridos = st.number_input("🥅 Gols Sofridos", min_value=0, step=1)
 
-jogador = st.selectbox(
-    "Nome do jogador",
-    jogadores,
-    format_func=lambda x: x["nome"]
-)
+    submitted = st.form_submit_button("Registrar")
 
-time = st.selectbox(
-    "Time",
-    times,
-    format_func=lambda x: x["time"]
-)
+    if submitted:
+        response = supabase.table("estatisticas").insert({
+            "jogador": jogador,
+            "time": time,
+            "data": data_partida,
+            "gols_marcados": gols_marcados,
+            "gols_sofridos": gols_sofridos
+        }).execute()
 
-tipo = st.radio("Tipo de jogador", ["Linha", "Goleiro"])
-
-if tipo == "Linha":
-    gols_marcados = st.number_input("Gols marcados", min_value=0)
-    gols_sofridos = 0
-else:
-    gols_sofridos = st.number_input("Gols sofridos", min_value=0)
-    gols_marcados = 0
-
-if st.button("Salvar"):
-    supabase.table("estatisticas").insert({
-        "partida_id": partida["id"],
-        "jogador_id": jogador["id"],
-        "time_id": time["id"],
-        "gols_marcados": gols_marcados,
-        "gols_sofridos": gols_sofridos
-    }).execute()
-
-    st.success("Registro salvo com sucesso!")
+        if response.status_code == 201:
+            st.success("✅ Estatísticas registradas com sucesso!")
+        else:
+            st.error("❌ Erro ao registrar estatísticas.")
+            st.json(response)
