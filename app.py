@@ -21,9 +21,9 @@ datas = [p["data_partida"][:10] for p in partidas_data]  # Pega só a parte da d
 
 # Formulário
 with st.form("form_estatisticas"):
-    jogador = st.selectbox("👤 Jogador", jogadores)
-    time = st.selectbox("🏳️ Time", times)
-    data_partida = st.selectbox("📅 Data da Partida", datas)
+    jogador_id = st.selectbox("👤 Jogador", jogadores)
+    time_id = st.selectbox("🏳️ Time", times)
+    partida_id = st.selectbox("📅 Data da Partida", datas)
     gols_marcados = st.number_input("⚽ Gols Marcados", min_value=0, step=1)
     gols_sofridos = st.number_input("🥅 Gols Sofridos", min_value=0, step=1)
 
@@ -43,4 +43,5 @@ with st.form("form_estatisticas"):
         else:
             st.error("❌ Erro ao registrar estatísticas.")
             st.json(response)
+
 
