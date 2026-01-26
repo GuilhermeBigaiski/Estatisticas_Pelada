@@ -8,10 +8,9 @@ The application was developed to replace manual spreadsheet updates, ensuring st
 
 ## Project Objective
 
-- Register individual player statistics per match
-- Ensure data consistency and standardization at the source
-- Store data directly in a relational database
-- Provide a reliable foundation for Power BI analytics
+Provide a simple and reliable interface for registering individual and overall football statistics, including number of wins, goals scored, goals conceded, attendance, and other metrics, aiming to eliminate the use of spreadsheets, increase data reliability, and facilitate information updates and maintenance.
+
+This repository focuses **exclusively on football statistical data ingestion**, and does not include visualizations or analytical business rules.
 
 ---
 
