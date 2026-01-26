@@ -1,4 +1,4 @@
-# Football Statistics – Data Ingestion
+# Football Statistics – Football Project (Data Ingestion)
 
 This repository contains the application responsible for **football match statistics data ingestion**, as part of the **Football Performance & Financial Control** project.
 
