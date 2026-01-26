@@ -42,11 +42,11 @@ This repository focuses **exclusively on football statistical data ingestion**, 
 ## Repository Structure
 
 Estatisticas_Pelada/
-│── app.py              # Streamlit application
-│── requirements.txt    # Project dependencies
-│── runtime.txt         # Runtime configuration
+│── app.py
+│── requirements.txt
+│── runtime.txt
 │── .streamlit/
-│   └── config.toml     # Streamlit UI configuration
+│   └── config.toml
 
 ---
 
@@ -71,5 +71,5 @@ The main portfolio repository provides an overview of the full solution and rela
 
 ##  Notes
 
-This project was designed to allow non-technical users to register financial data without direct interaction with databases or spreadsheets.
+This project was designed to allow non-technical users to register statistical data without direct interaction with databases or spreadsheets.
 
