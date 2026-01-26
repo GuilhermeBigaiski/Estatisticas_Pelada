@@ -42,6 +42,7 @@ This repository focuses **exclusively on football statistical data ingestion**, 
 ## Repository Structure
 
 Estatisticas_Pelada/
+
 │── app.py
 │── requirements.txt
 │── runtime.txt
