@@ -6,7 +6,7 @@ The application was developed to replace manual spreadsheet updates, ensuring st
 
 ---
 
-## Purpose
+## Project Objective
 
 - Register individual player statistics per match
 - Ensure data consistency and standardization at the source
@@ -30,7 +30,7 @@ The application was developed to replace manual spreadsheet updates, ensuring st
 
 ---
 
-## Tech Stack
+## Technologies Used
 
 - Python
 - Streamlit
