@@ -67,3 +67,10 @@ This repository is part of the larger project:
 **Football Performance & Financial Control – End-to-End Data Project**
 
 The main portfolio repository provides an overview of the full solution and related modules.
+
+---
+
+##  Notes
+
+This project was designed to allow non-technical users to register financial data without direct interaction with databases or spreadsheets.
+
